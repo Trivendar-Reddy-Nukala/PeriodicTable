@@ -10,6 +10,23 @@ export interface Element {
   shells: number[];  // Array representing electrons in each shell
 }
 
+// Function to calculate electron shells based on atomic number
+const calculateShells = (atomicNumber: number): number[] => {
+  const shells: number[] = [];
+  let remainingElectrons = atomicNumber;
+  
+  // Maximum electrons per shell: 2, 8, 18, 32
+  const maxElectrons = [2, 8, 18, 32];
+  
+  for (let i = 0; i < maxElectrons.length && remainingElectrons > 0; i++) {
+    const electronsInShell = Math.min(remainingElectrons, maxElectrons[i]);
+    shells.push(electronsInShell);
+    remainingElectrons -= electronsInShell;
+  }
+  
+  return shells;
+};
+
 export const categories = [
   'alkali metal',
   'alkaline earth metal',
@@ -919,4 +936,7 @@ export const elements: Element[] = [
     group: 3,
     block: 'f'
   }
-]; 
+].map(element => ({
+  ...element,
+  shells: element.shells || calculateShells(element.number)
+})); 

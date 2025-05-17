@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import styled, { keyframes, css } from 'styled-components';
+import React, { useState, useRef } from 'react';
+import styled, { keyframes } from 'styled-components';
 import { elements, categories, getCategoryColor, Element } from '../data/elements';
 
 interface Theme {
@@ -423,177 +423,6 @@ const ThemeToggle = styled.button<ThemeToggleProps>`
   }
 `;
 
-const Tooltip = styled.div<{ $theme: Theme; $position: { top: number; left: number } }>`
-  position: absolute;
-  top: ${props => props.$position.top}px;
-  left: ${props => props.$position.left}px;
-  transform: translate(-50%, -100%);
-  background: ${props => props.$theme.cardBackground};
-  padding: 1rem;
-  border-radius: 12px;
-  z-index: 1000;
-  width: 280px;
-  pointer-events: none;
-  opacity: 10;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  border: 1px solid ${props => props.$theme.text}20;
-  visibility: visible;
-  animation: ${fadeIn} 0.2s ease-out;
-  transition: all 0.2s ease;
-  will-change: transform, opacity;
-  backdrop-filter: blur(8px);
-  margin-top: -10px;
-
-  @media (max-width: 768px) {
-    width: 240px;
-    padding: 0.8rem;
-  }
-
-  @media (max-width: 480px) {
-    width: 200px;
-    padding: 0.6rem;
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -8px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid ${props => props.$theme.cardBackground};
-  }
-`;
-
-const TooltipHeader = styled.div<{ $theme: Theme }>`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid ${props => props.$theme.text}20;
-  animation: ${scaleIn} 0.3s ease-out;
-
-  @media (max-width: 768px) {
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
-  }
-`;
-
-const ElementSymbolLarge = styled.div<{ $theme: Theme }>`
-  font-size: 2rem;
-  font-weight: bold;
-  color: ${props => props.$theme.text};
-
-  @media (max-width: 768px) {
-    font-size: 1.6rem;
-  }
-`;
-
-const ElementInfo = styled.div<{ $theme: Theme }>`
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-`;
-
-const ElementNameLarge = styled.div<{ $theme: Theme }>`
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: ${props => props.$theme.text};
-
-  @media (max-width: 768px) {
-    font-size: 1rem;
-  }
-`;
-
-const ElementNumberLarge = styled.div<{ $theme: Theme }>`
-  font-size: 0.9rem;
-  color: ${props => props.$theme.text}80;
-`;
-
-const TooltipContent = styled.div<{ $theme: Theme }>`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const TooltipRow = styled.div<{ $theme: Theme }>`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
-  border-radius: 6px;
-  font-size: 0.9rem;
-  transition: background-color 0.2s ease;
-
-  @media (max-width: 768px) {
-    padding: 0.4rem;
-    font-size: 0.8rem;
-  }
-
-  &:hover {
-    background: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
-  }
-
-  span:first-child {
-    color: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'};
-  }
-
-  span:last-child {
-    color: ${props => props.$theme.text};
-    font-weight: 600;
-  }
-`;
-
-const OrbitContainer = styled.div`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  pointer-events: none;
-`;
-
-const OrbitRing = styled.div<{ $theme: Theme }>`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100%;
-  height: 100%;
-  border: 1px dashed ${props => props.$theme.text}30;
-  border-radius: 50%;
-`;
-
-const rotate = keyframes`
-  from {
-    transform: rotate(0deg) translateX(20px) rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg) translateX(20px) rotate(-360deg);
-  }
-`;
-
-const Electron = styled.div<{ $angle: number; $theme: Theme; $delay: number }>`
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 4px;
-  height: 4px;
-  background: ${props => props.$theme.text};
-  border-radius: 50%;
-  transform-origin: 20px 0;
-  transform: rotate(${props => props.$angle}deg) translateX(20px) rotate(-${props => props.$angle}deg);
-  opacity: 0.7;
-  animation: ${rotate} 3s linear infinite;
-  animation-delay: ${props => props.$delay}s;
-`;
-
 const ElementModal = styled.div<ModalProps>`
   position: fixed;
   top: 0;
@@ -673,6 +502,82 @@ const ModalValue = styled.span<{ $theme: Theme }>`
   font-size: 1.1rem;
   font-weight: 600;
   color: ${(props: { $theme: Theme }) => props.$theme.text};
+`;
+
+const ElementSymbolLarge = styled.div<{ $theme: Theme }>`
+  font-size: 2rem;
+  font-weight: bold;
+  color: ${props => props.$theme.text};
+
+  @media (max-width: 768px) {
+    font-size: 1.6rem;
+  }
+`;
+
+const ElementInfo = styled.div<{ $theme: Theme }>`
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+`;
+
+const ElementNameLarge = styled.div<{ $theme: Theme }>`
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: ${props => props.$theme.text};
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
+const ElementNumberLarge = styled.div<{ $theme: Theme }>`
+  font-size: 0.9rem;
+  color: ${props => props.$theme.text}80;
+`;
+
+const OrbitContainer = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+`;
+
+const OrbitRing = styled.div<{ $theme: Theme }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  border: 1px dashed ${props => props.$theme.text}30;
+  border-radius: 50%;
+`;
+
+const rotate = keyframes`
+  from {
+    transform: rotate(0deg) translateX(20px) rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg) translateX(20px) rotate(-360deg);
+  }
+`;
+
+const Electron = styled.div<{ $angle: number; $theme: Theme; $delay: number }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: ${props => props.$theme.text};
+  border-radius: 50%;
+  transform-origin: 20px 0;
+  transform: rotate(${props => props.$angle}deg) translateX(20px) rotate(-${props => props.$angle}deg);
+  opacity: 0.7;
+  animation: ${rotate} 3s linear infinite;
+  animation-delay: ${props => props.$delay}s;
 `;
 
 const PeriodicTable: React.FC = () => {
