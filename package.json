@@ -23,5 +23,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@emotion/babel-plugin": "^11.13.5"
+  }
 }
