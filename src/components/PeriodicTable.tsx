@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import styled from '@emotion/styled';
-import { keyframes } from '@emotion/react';
+import React, { useState, useRef, useEffect } from 'react';
+import styled, { keyframes, css } from 'styled-components';
 import { elements, categories, getCategoryColor, Element } from '../data/elements';
 
-// Theme interface
 interface Theme {
   background: string;
   text: string;
@@ -11,28 +9,51 @@ interface Theme {
   overlay: string;
 }
 
-const lightTheme: Theme = {
-  background: '#f5f7fa',
-  text: '#333',
-  cardBackground: '#ffffff',
-  overlay: 'rgba(0, 0, 0, 0.5)',
-};
+interface StyledProps {
+  $theme: Theme;
+}
+
+interface ElementCardProps {
+  $theme: Theme;
+  $color: string;
+  $group: number;
+  $period: number;
+}
+
+interface ModalProps extends StyledProps {
+  $isOpen: boolean;
+}
+
+interface FilterButtonProps extends StyledProps {
+  $active: boolean;
+}
+
+interface ThemeToggleProps extends StyledProps {
+  disabled: boolean;
+}
 
 const darkTheme: Theme = {
   background: '#1a1a1a',
-  text: '#fff',
-  cardBackground: '#1e1e1e',
-  overlay: 'rgba(0, 0, 0, 0.7)',
+  text: '#ffffff',
+  cardBackground: '#2d2d2d',
+  overlay: 'rgba(0, 0, 0, 0.8)'
+};
+
+const lightTheme: Theme = {
+  background: '#f5f5f5',
+  text: '#333333',
+  cardBackground: '#ffffff',
+  overlay: 'rgba(255, 255, 255, 0.8)'
 };
 
 const fadeIn = keyframes`
   from {
     opacity: 0;
-    transform: translate(-50%, 10px);
+    transform: scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: scale(1);
   }
 `;
 
@@ -45,22 +66,30 @@ const scaleIn = keyframes`
   }
 `;
 
-const TableContainer = styled.div<{ $theme: Theme }>`
+const TableContainer = styled.div<StyledProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 1rem;
   min-height: 100vh;
-  background: ${props => props.$theme.background};
-  overflow: visible;
+  background: ${(props: StyledProps) => props.$theme.background};
+  overflow-x: hidden;
   width: 100%;
   position: relative;
   z-index: 1;
   isolation: isolate;
   transition: background-color 0.3s ease;
 
+  @media (max-width: 1200px) {
+    padding: 0.8rem;
+  }
+
   @media (max-width: 768px) {
     padding: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.3rem;
   }
 `;
 
@@ -75,15 +104,29 @@ const TableWrapper = styled.div`
   position: relative;
   z-index: 2;
   isolation: isolate;
+  overflow-x: auto;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(18, minmax(55px, 1fr));
+    gap: 2px;
+  }
 
   @media (max-width: 1200px) {
     grid-template-columns: repeat(18, minmax(50px, 1fr));
+    gap: 2px;
+    padding: 0.8rem;
   }
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(18, minmax(40px, 1fr));
-    gap: 2px;
+    gap: 1px;
     padding: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(18, minmax(35px, 1fr));
+    gap: 1px;
+    padding: 0.3rem;
   }
 `;
 
@@ -96,19 +139,33 @@ const LanthanideActinideContainer = styled.div`
   position: relative;
   z-index: 2;
   isolation: isolate;
+  overflow-x: auto;
+
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(15, minmax(55px, 1fr));
+    gap: 2px;
+  }
 
   @media (max-width: 1200px) {
     grid-template-columns: repeat(15, minmax(50px, 1fr));
+    gap: 2px;
+    padding: 0.8rem;
   }
 
   @media (max-width: 768px) {
     grid-template-columns: repeat(15, minmax(40px, 1fr));
-    gap: 2px;
+    gap: 1px;
     padding: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(15, minmax(35px, 1fr));
+    gap: 1px;
+    padding: 0.3rem;
   }
 `;
 
-const ElementCard = styled.div<{ $color: string; $theme: Theme; $group: number; $period: number }>`
+const ElementCard = styled.div<ElementCardProps>`
   aspect-ratio: 1;
   padding: 0.5rem;
   background: ${props => props.$color};
@@ -123,22 +180,38 @@ const ElementCard = styled.div<{ $color: string; $theme: Theme; $group: number; 
   grid-row: ${props => props.$period};
   overflow: visible;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 3;
+  z-index: 1;
+  border: 1px solid ${props => props.$theme.text}10;
 
   &:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    z-index: 4;
+    transform: scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    border-color: ${props => props.$theme.text}30;
+  }
+
+  @media (max-width: 1400px) {
+    min-width: 55px;
+    padding: 0.4rem;
+    border-radius: 6px;
   }
 
   @media (max-width: 1200px) {
     min-width: 50px;
     padding: 0.4rem;
+    border-radius: 6px;
   }
 
   @media (max-width: 768px) {
     min-width: 40px;
     padding: 0.3rem;
+    border-radius: 4px;
+  }
+
+  @media (max-width: 480px) {
+    min-width: 35px;
+    padding: 0.2rem;
+    border-radius: 4px;
   }
 `;
 
@@ -155,6 +228,26 @@ const ElementSymbol = styled.div<{ $theme: Theme }>`
   color: ${props => props.$theme.text};
   text-align: center;
   margin-top: 0.8rem;
+
+  @media (max-width: 1400px) {
+    font-size: 1.1rem;
+    margin-top: 0.7rem;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 1rem;
+    margin-top: 0.6rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+  }
 `;
 
 const ElementNumber = styled.div<{ $theme: Theme }>`
@@ -165,6 +258,18 @@ const ElementNumber = styled.div<{ $theme: Theme }>`
   top: 2px;
   left: 4px;
   font-weight: 500;
+
+  @media (max-width: 768px) {
+    font-size: 0.6rem;
+    top: 1px;
+    left: 3px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.5rem;
+    top: 1px;
+    left: 2px;
+  }
 `;
 
 const ElementName = styled.div<{ $theme: Theme }>`
@@ -175,6 +280,16 @@ const ElementName = styled.div<{ $theme: Theme }>`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  @media (max-width: 768px) {
+    font-size: 0.5rem;
+    margin-top: 0.1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.4rem;
+    margin-top: 0.1rem;
+  }
 `;
 
 const ElementMass = styled.div<{ $theme: Theme }>`
@@ -183,6 +298,14 @@ const ElementMass = styled.div<{ $theme: Theme }>`
   opacity: 0.8;
   text-align: center;
   margin-top: 0.1rem;
+
+  @media (max-width: 768px) {
+    font-size: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 0.4rem;
+  }
 `;
 
 const FilterContainer = styled.div`
@@ -201,14 +324,21 @@ const FilterContainer = styled.div`
   @media (max-width: 768px) {
     gap: 0.3rem;
     padding: 0 0.5rem;
+    margin-bottom: 0.8rem;
+  }
+
+  @media (max-width: 480px) {
+    gap: 0.2rem;
+    padding: 0 0.3rem;
+    margin-bottom: 0.5rem;
   }
 `;
 
-const FilterButton = styled.button<{ $active: boolean; $theme: Theme }>`
+const FilterButton = styled.button<FilterButtonProps>`
   padding: 0.5rem 1rem;
-  border: none;
+  border: 1px solid ${(props: FilterButtonProps) => props.$theme.text}10;
   border-radius: 20px;
-  background: ${props => props.$active 
+  background: ${(props: FilterButtonProps) => props.$active 
     ? props.$theme === darkTheme 
       ? 'rgba(255, 255, 255, 0.2)' 
       : 'rgba(0, 0, 0, 0.1)'
@@ -216,19 +346,18 @@ const FilterButton = styled.button<{ $active: boolean; $theme: Theme }>`
       ? 'rgba(255, 255, 255, 0.1)' 
       : 'rgba(0, 0, 0, 0.05)'
   };
-  color: ${props => props.$theme.text};
+  color: ${(props: FilterButtonProps) => props.$theme.text};
   cursor: pointer;
   font-size: 0.9rem;
   white-space: nowrap;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 6;
   position: relative;
-  border: 1px solid ${props => props.$theme.text}10;
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    background: ${props => props.$active 
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: ${(props: FilterButtonProps) => props.$active 
       ? props.$theme === darkTheme 
         ? 'rgba(255, 255, 255, 0.25)' 
         : 'rgba(0, 0, 0, 0.15)'
@@ -236,27 +365,29 @@ const FilterButton = styled.button<{ $active: boolean; $theme: Theme }>`
         ? 'rgba(255, 255, 255, 0.15)' 
         : 'rgba(0, 0, 0, 0.08)'
     };
-  }
-
-  &:active {
-    transform: translateY(0);
+    border-color: ${(props: FilterButtonProps) => props.$theme.text}30;
   }
 
   @media (max-width: 768px) {
     padding: 0.4rem 0.8rem;
     font-size: 0.8rem;
   }
+
+  @media (max-width: 480px) {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.7rem;
+  }
 `;
 
-const ThemeToggle = styled.button<{ $theme: Theme }>`
+const ThemeToggle = styled.button<ThemeToggleProps>`
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
-  background: ${props => props.$theme === darkTheme 
+  background: ${(props: ThemeToggleProps) => props.$theme === darkTheme 
     ? 'rgba(255, 255, 255, 0.15)' 
     : 'rgba(0, 0, 0, 0.08)'};
-  border: 1px solid ${props => props.$theme.text}20;
-  color: ${props => props.$theme.text};
+  border: 1px solid ${(props: ThemeToggleProps) => props.$theme.text}20;
+  color: ${(props: ThemeToggleProps) => props.$theme === darkTheme ? '#ffffff' : '#333333'};
   padding: 0.6rem 1.2rem;
   border-radius: 30px;
   cursor: pointer;
@@ -272,14 +403,9 @@ const ThemeToggle = styled.button<{ $theme: Theme }>`
   &:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    background: ${props => props.$theme === darkTheme 
+    background: ${(props: ThemeToggleProps) => props.$theme === darkTheme 
       ? 'rgba(255, 255, 255, 0.2)' 
       : 'rgba(0, 0, 0, 0.12)'};
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   @media (max-width: 768px) {
@@ -288,26 +414,35 @@ const ThemeToggle = styled.button<{ $theme: Theme }>`
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
+
+  @media (max-width: 480px) {
+    top: 0.8rem;
+    right: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+  }
 `;
 
-const Tooltip = styled.div<{ $theme: Theme }>`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+const Tooltip = styled.div<{ $theme: Theme; $position: { top: number; left: number } }>`
+  position: absolute;
+  top: ${props => props.$position.top}px;
+  left: ${props => props.$position.left}px;
+  transform: translate(-50%, -100%);
   background: ${props => props.$theme.cardBackground};
   padding: 1rem;
   border-radius: 12px;
-  z-index: 999999;
+  z-index: 1000;
   width: 280px;
   pointer-events: none;
-  opacity: 1;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  opacity: 10;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   border: 1px solid ${props => props.$theme.text}20;
   visibility: visible;
-  animation: ${fadeIn} 0.3s ease-out;
-  transition: all 0.3s ease;
+  animation: ${fadeIn} 0.2s ease-out;
+  transition: all 0.2s ease;
   will-change: transform, opacity;
+  backdrop-filter: blur(8px);
+  margin-top: -10px;
 
   @media (max-width: 768px) {
     width: 240px;
@@ -390,7 +525,7 @@ const TooltipRow = styled.div<{ $theme: Theme }>`
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background: ${props => props.$theme.background};
+  background: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
   border-radius: 6px;
   font-size: 0.9rem;
   transition: background-color 0.2s ease;
@@ -401,11 +536,11 @@ const TooltipRow = styled.div<{ $theme: Theme }>`
   }
 
   &:hover {
-    background: ${props => props.$theme.text}10;
+    background: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
   }
 
   span:first-child {
-    color: ${props => props.$theme.text}80;
+    color: ${props => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'};
   }
 
   span:last-child {
@@ -459,11 +594,93 @@ const Electron = styled.div<{ $angle: number; $theme: Theme; $delay: number }>`
   animation-delay: ${props => props.$delay}s;
 `;
 
+const ElementModal = styled.div<ModalProps>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: ${(props: ModalProps) => props.$theme.overlay};
+  display: ${(props: ModalProps) => props.$isOpen ? 'flex' : 'none'};
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const ModalContent = styled.div<{ $theme: Theme }>`
+  background: ${(props: { $theme: Theme }) => props.$theme.cardBackground};
+  padding: 2rem;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  border: 1px solid ${(props: { $theme: Theme }) => props.$theme.text}20;
+  animation: ${fadeIn} 0.3s ease-out;
+`;
+
+const CloseButton = styled.button<{ $theme: Theme }>`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: ${(props: { $theme: Theme }) => props.$theme.text};
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: ${(props: { $theme: Theme }) => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
+  }
+`;
+
+const ModalHeader = styled.div<{ $theme: Theme }>`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid ${(props: { $theme: Theme }) => props.$theme.text}20;
+`;
+
+const ModalRow = styled.div<{ $theme: Theme }>`
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: ${(props: { $theme: Theme }) => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)'};
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: ${(props: { $theme: Theme }) => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'};
+  }
+`;
+
+const ModalLabel = styled.span<{ $theme: Theme }>`
+  font-size: 0.9rem;
+  color: ${(props: { $theme: Theme }) => props.$theme === darkTheme ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'};
+  margin-bottom: 0.3rem;
+`;
+
+const ModalValue = styled.span<{ $theme: Theme }>`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: ${(props: { $theme: Theme }) => props.$theme.text};
+`;
+
 const PeriodicTable: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [hoveredElement, setHoveredElement] = useState<Element | null>(null);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [selectedElement, setSelectedElement] = useState<Element | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   const theme = isDarkMode ? darkTheme : lightTheme;
 
@@ -473,6 +690,14 @@ const PeriodicTable: React.FC = () => {
       setIsDarkMode(!isDarkMode);
       setIsTransitioning(false);
     }, 150);
+  };
+
+  const handleElementClick = (element: Element) => {
+    setSelectedElement(element);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedElement(null);
   };
 
   const filteredElements = elements.filter(element => {
@@ -493,19 +718,17 @@ const PeriodicTable: React.FC = () => {
   );
 
   const getValenceElectrons = (element: Element): number => {
-    // First try to get from shells data if available
     if (element.shells && element.shells.length > 0) {
       return element.shells[element.shells.length - 1];
     }
     
-    // Calculate based on group number
     const group = element.group;
     if (group >= 1 && group <= 2) {
-      return group; // Groups 1 and 2 have 1 and 2 valence electrons respectively
+      return group;
     } else if (group >= 13 && group <= 18) {
-      return group - 10; // Groups 13-18 have 3-8 valence electrons
+      return group - 10;
     } else if (group >= 3 && group <= 12) {
-      return 2; // Transition metals typically have 2 valence electrons
+      return 2;
     }
     return 0;
   };
@@ -534,57 +757,55 @@ const PeriodicTable: React.FC = () => {
     return value;
   };
 
-  const renderTooltip = (element: Element) => {
-    const rect = document.querySelector(`[data-symbol="${element.symbol}"]`)?.getBoundingClientRect();
-    if (!rect) return null;
+  const renderModal = () => {
+    if (!selectedElement) return null;
 
     return (
-      <Tooltip 
-        $theme={theme} 
-        style={{ 
-          top: `${rect.top - 200}px`,
-          left: `${rect.left + (rect.width / 2)}px`
-        }}
-      >
-        <TooltipHeader $theme={theme}>
-          <ElementSymbolLarge $theme={theme}>{element.symbol}</ElementSymbolLarge>
-          <ElementInfo $theme={theme}>
-            <ElementNameLarge $theme={theme}>{element.name}</ElementNameLarge>
-            <ElementNumberLarge $theme={theme}>Atomic Number: {element.number}</ElementNumberLarge>
-          </ElementInfo>
-        </TooltipHeader>
-        <TooltipContent $theme={theme}>
-          <TooltipRow $theme={theme}>
-            <span>Atomic Mass</span>
-            <span>{formatValue(element.atomic_mass)} u</span>
-          </TooltipRow>
-          <TooltipRow $theme={theme}>
-            <span>Category</span>
-            <span>{element.category}</span>
-          </TooltipRow>
-          <TooltipRow $theme={theme}>
-            <span>Block</span>
-            <span>{element.block}</span>
-          </TooltipRow>
-          <TooltipRow $theme={theme}>
-            <span>Group</span>
-            <span>{element.group}</span>
-          </TooltipRow>
-          <TooltipRow $theme={theme}>
-            <span>Period</span>
-            <span>{element.period}</span>
-          </TooltipRow>
-          <TooltipRow $theme={theme}>
-            <span>Valence Electrons</span>
-            <span>{getValenceElectrons(element)}</span>
-          </TooltipRow>
-        </TooltipContent>
-      </Tooltip>
+      <ElementModal $theme={theme} $isOpen={!!selectedElement}>
+        <ModalContent $theme={theme}>
+          <CloseButton $theme={theme} onClick={handleCloseModal}>
+            ×
+          </CloseButton>
+          <ModalHeader $theme={theme}>
+            <ElementSymbolLarge $theme={theme}>{selectedElement.symbol}</ElementSymbolLarge>
+            <ElementInfo $theme={theme}>
+              <ElementNameLarge $theme={theme}>{selectedElement.name}</ElementNameLarge>
+              <ElementNumberLarge $theme={theme}>Atomic Number: {selectedElement.number}</ElementNumberLarge>
+            </ElementInfo>
+          </ModalHeader>
+          <ModalContent $theme={theme}>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Atomic Mass</ModalLabel>
+              <ModalValue $theme={theme}>{formatValue(selectedElement.atomic_mass)} u</ModalValue>
+            </ModalRow>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Category</ModalLabel>
+              <ModalValue $theme={theme}>{selectedElement.category}</ModalValue>
+            </ModalRow>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Block</ModalLabel>
+              <ModalValue $theme={theme}>{selectedElement.block}</ModalValue>
+            </ModalRow>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Group</ModalLabel>
+              <ModalValue $theme={theme}>{selectedElement.group}</ModalValue>
+            </ModalRow>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Period</ModalLabel>
+              <ModalValue $theme={theme}>{selectedElement.period}</ModalValue>
+            </ModalRow>
+            <ModalRow $theme={theme}>
+              <ModalLabel $theme={theme}>Valence Electrons</ModalLabel>
+              <ModalValue $theme={theme}>{getValenceElectrons(selectedElement)}</ModalValue>
+            </ModalRow>
+          </ModalContent>
+        </ModalContent>
+      </ElementModal>
     );
   };
 
   return (
-    <TableContainer $theme={theme}>
+    <TableContainer $theme={theme} ref={tableRef}>
       <ThemeToggle
         onClick={handleThemeToggle}
         $theme={theme}
@@ -615,8 +836,7 @@ const PeriodicTable: React.FC = () => {
             $theme={theme}
             $group={element.group}
             $period={element.period}
-            onMouseEnter={() => setHoveredElement(element)}
-            onMouseLeave={() => setHoveredElement(null)}
+            onClick={() => handleElementClick(element)}
           >
             <ElementNumber $theme={theme}>{element.number}</ElementNumber>
             <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
@@ -633,8 +853,6 @@ const PeriodicTable: React.FC = () => {
               <OrbitRing $theme={theme} />
               {renderElectrons(getValenceElectrons(element), theme)}
             </OrbitContainer>
-
-            {hoveredElement?.symbol === element.symbol && renderTooltip(element)}
           </ElementCard>
         ))}
       </TableWrapper>
@@ -647,8 +865,7 @@ const PeriodicTable: React.FC = () => {
             $theme={theme}
             $group={element.number - 57 + 3}
             $period={1}
-            onMouseEnter={() => setHoveredElement(element)}
-            onMouseLeave={() => setHoveredElement(null)}
+            onClick={() => handleElementClick(element)}
           >
             <ElementNumber $theme={theme}>{element.number}</ElementNumber>
             <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
@@ -665,8 +882,6 @@ const PeriodicTable: React.FC = () => {
               <OrbitRing $theme={theme} />
               {renderElectrons(getValenceElectrons(element), theme)}
             </OrbitContainer>
-
-            {hoveredElement?.symbol === element.symbol && renderTooltip(element)}
           </ElementCard>
         ))}
       </LanthanideActinideContainer>
@@ -679,8 +894,7 @@ const PeriodicTable: React.FC = () => {
             $theme={theme}
             $group={element.number - 89 + 3}
             $period={1}
-            onMouseEnter={() => setHoveredElement(element)}
-            onMouseLeave={() => setHoveredElement(null)}
+            onClick={() => handleElementClick(element)}
           >
             <ElementNumber $theme={theme}>{element.number}</ElementNumber>
             <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
@@ -697,11 +911,11 @@ const PeriodicTable: React.FC = () => {
               <OrbitRing $theme={theme} />
               {renderElectrons(getValenceElectrons(element), theme)}
             </OrbitContainer>
-
-            {hoveredElement?.symbol === element.symbol && renderTooltip(element)}
           </ElementCard>
         ))}
       </LanthanideActinideContainer>
+
+      {renderModal()}
     </TableContainer>
   );
 };
