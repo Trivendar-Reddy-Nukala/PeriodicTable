@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
+import { keyframes } from '@emotion/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { elements, categories, getCategoryColor, Element } from '../data/elements';
 
@@ -66,7 +67,137 @@ const LanthanideActinideContainer = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
-const ElementCard = styled(motion.div)<{ $color: string; $theme: Theme; $group: number; $period: number }>`
+// Animation keyframes
+const vaporAnimation = keyframes`
+  0% {
+    opacity: 0.4;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-5px) scale(1.1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: translateY(0) scale(1);
+  }
+`;
+
+const neonGlow = keyframes`
+  0% {
+    box-shadow: 0 0 5px rgb(0 255 255 / 0.5),
+                0 0 10px rgb(0 255 255 / 0.3),
+                0 0 15px rgb(0 255 255 / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px rgb(0 255 255 / 0.7),
+                0 0 20px rgb(0 255 255 / 0.5),
+                0 0 30px rgb(0 255 255 / 0.3);
+  }
+  100% {
+    box-shadow: 0 0 5px rgb(0 255 255 / 0.5),
+                0 0 10px rgb(0 255 255 / 0.3),
+                0 0 15px rgb(0 255 255 / 0.2);
+  }
+`;
+
+const radioactiveGlow = keyframes`
+  0% {
+    box-shadow: 0 0 5px rgb(255 255 0 / 0.5),
+                0 0 10px rgb(255 255 0 / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px rgb(255 255 0 / 0.7),
+                0 0 25px rgb(255 255 0 / 0.5);
+  }
+  100% {
+    box-shadow: 0 0 5px rgb(255 255 0 / 0.5),
+                0 0 10px rgb(255 255 0 / 0.3);
+  }
+`;
+
+const orbitAnimation = keyframes`
+  0% {
+    transform: rotate(0deg) translateX(20px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(20px) rotate(-360deg);
+  }
+`;
+
+// Add electron orbit animations
+const electronOrbitAnimation = keyframes`
+  0% {
+    transform: rotate(0deg) translateX(15px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(15px) rotate(-360deg);
+  }
+`;
+
+const ElectronOrbit = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 1;
+  transition: opacity 0.3s ease;
+`;
+
+const Electron = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  transform-origin: 15px 0;
+  animation: ${electronOrbitAnimation} 3s infinite linear;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+`;
+
+// Styled components for effects
+const VaporEffect = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 8px;
+  opacity: 1;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.2) 0%, rgb(255 255 255 / 0) 100%);
+    animation: ${vaporAnimation} 3s infinite ease-in-out;
+  }
+
+  &::after {
+    animation-delay: 1.5s;
+  }
+`;
+
+const OrbitParticle = styled.div`
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgb(255 255 255 / 0.5);
+  border-radius: 50%;
+  animation: ${orbitAnimation} 3s infinite linear;
+`;
+
+const ElementCard = styled(motion.div)<{ $color: string; $theme: Theme; $group: number; $period: number; $category: string; $symbol: string; $number: number }>`
   aspect-ratio: 1;
   padding: 0.5rem;
   background: ${props => props.$color};
@@ -81,15 +212,51 @@ const ElementCard = styled(motion.div)<{ $color: string; $theme: Theme; $group: 
   transition: all 0.3s ease;
   grid-column: ${props => props.$group};
   grid-row: ${props => props.$period};
+  overflow: hidden;
+
+  ${props => props.$number <= 21 && props.$category === 'noble gas' && `
+    animation: ${neonGlow} 2s infinite ease-in-out;
+  `}
+
+  ${props => props.$number <= 21 && ['U', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm', 'Md', 'No', 'Lr'].includes(props.$symbol) && `
+    animation: ${radioactiveGlow} 2s infinite ease-in-out;
+  `}
+
+  ${props => props.$number <= 21 && ['H', 'N', 'O', 'F', 'Cl', 'He', 'Ne', 'Ar', 'Kr', 'Xe', 'Rn'].includes(props.$symbol) && `
+    ${VaporEffect} {
+      opacity: 1;
+    }
+  `}
+
+  ${props => {
+    const valenceElectrons = {
+      'H': 1, 'Li': 1, 'Na': 1, 'K': 1, 'Rb': 1, 'Cs': 1, 'Fr': 1,
+      'Be': 2, 'Mg': 2, 'Ca': 2, 'Sr': 2, 'Ba': 2, 'Ra': 2,
+      'B': 3, 'Al': 3, 'Ga': 3, 'In': 3, 'Tl': 3,
+      'C': 4, 'Si': 4, 'Ge': 4, 'Sn': 4, 'Pb': 4,
+      'N': 5, 'P': 5, 'As': 5, 'Sb': 5, 'Bi': 5,
+      'O': 6, 'S': 6, 'Se': 6, 'Te': 6, 'Po': 6,
+      'F': 7, 'Cl': 7, 'Br': 7, 'I': 7, 'At': 7,
+      'He': 2, 'Ne': 8, 'Ar': 8, 'Kr': 8, 'Xe': 8, 'Rn': 8
+    }[props.$symbol] || 0;
+
+    return props.$number <= 21 ? `
+      ${ElectronOrbit} {
+        opacity: 1;
+      }
+
+      ${Array.from({ length: valenceElectrons }).map((_, i) => `
+        ${Electron}:nth-child(${i + 1}) {
+          animation-delay: ${i * (3 / valenceElectrons)}s;
+        }
+      `).join('')}
+    ` : '';
+  }}
 
   &:hover {
     transform: scale(1.05);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     z-index: 2;
-
-    img {
-      opacity: 1;
-    }
   }
 `;
 
@@ -328,12 +495,12 @@ const Tooltip = styled(motion.div)<{ $theme: Theme }>`
   padding: 1rem;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  z-index: 10;
+  z-index: 1000;
   width: 220px;
   pointer-events: none;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  opacity: 0;
+  opacity: 1;
   transform-origin: bottom center;
 
   &::after {
@@ -475,6 +642,28 @@ const PeriodicTable: React.FC = () => {
     }
   };
 
+  // Update the ElementCard rendering in the JSX
+  const renderElectronOrbits = (symbol: string) => {
+    const valenceElectrons = {
+      'H': 1, 'Li': 1, 'Na': 1, 'K': 1, 'Rb': 1, 'Cs': 1, 'Fr': 1,
+      'Be': 2, 'Mg': 2, 'Ca': 2, 'Sr': 2, 'Ba': 2, 'Ra': 2,
+      'B': 3, 'Al': 3, 'Ga': 3, 'In': 3, 'Tl': 3,
+      'C': 4, 'Si': 4, 'Ge': 4, 'Sn': 4, 'Pb': 4,
+      'N': 5, 'P': 5, 'As': 5, 'Sb': 5, 'Bi': 5,
+      'O': 6, 'S': 6, 'Se': 6, 'Te': 6, 'Po': 6,
+      'F': 7, 'Cl': 7, 'Br': 7, 'I': 7, 'At': 7,
+      'He': 2, 'Ne': 8, 'Ar': 8, 'Kr': 8, 'Xe': 8, 'Rn': 8
+    }[symbol] || 0;
+
+    return (
+      <ElectronOrbit>
+        {Array.from({ length: valenceElectrons }).map((_, i) => (
+          <Electron key={i} />
+        ))}
+      </ElectronOrbit>
+    );
+  };
+
   return (
     <TableContainer $theme={theme}>
       <ThemeToggle
@@ -510,6 +699,9 @@ const PeriodicTable: React.FC = () => {
               $theme={theme}
               $group={element.group}
               $period={element.period}
+              $category={element.category}
+              $symbol={element.symbol}
+              $number={element.number}
               variants={elementVariants}
               initial="hidden"
               animate="visible"
@@ -518,6 +710,19 @@ const PeriodicTable: React.FC = () => {
               onHoverStart={() => setHoveredElement(element)}
               onHoverEnd={() => setHoveredElement(null)}
             >
+              {element.number <= 21 && renderElectronOrbits(element.symbol)}
+              {element.number <= 21 && ['H', 'N', 'O', 'F', 'Cl', 'He', 'Ne', 'Ar', 'Kr', 'Xe', 'Rn'].includes(element.symbol) && (
+                <VaporEffect />
+              )}
+              
+              {['metal', 'transition metal', 'post-transition metal'].includes(element.category) && (
+                <>
+                  <OrbitParticle style={{ animationDelay: '0s' }} />
+                  <OrbitParticle style={{ animationDelay: '1s' }} />
+                  <OrbitParticle style={{ animationDelay: '2s' }} />
+                </>
+              )}
+
               <ElementNumber $theme={theme}>{element.number}</ElementNumber>
               <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
               <ElementImage
@@ -574,6 +779,9 @@ const PeriodicTable: React.FC = () => {
               $theme={theme}
               $group={element.number - 57 + 3}
               $period={1}
+              $category={element.category}
+              $symbol={element.symbol}
+              $number={element.number}
               variants={elementVariants}
               initial="hidden"
               animate="visible"
@@ -582,6 +790,19 @@ const PeriodicTable: React.FC = () => {
               onHoverStart={() => setHoveredElement(element)}
               onHoverEnd={() => setHoveredElement(null)}
             >
+              {element.number <= 21 && renderElectronOrbits(element.symbol)}
+              {element.number <= 21 && ['H', 'N', 'O', 'F', 'Cl', 'He', 'Ne', 'Ar', 'Kr', 'Xe', 'Rn'].includes(element.symbol) && (
+                <VaporEffect />
+              )}
+              
+              {['metal', 'transition metal', 'post-transition metal'].includes(element.category) && (
+                <>
+                  <OrbitParticle style={{ animationDelay: '0s' }} />
+                  <OrbitParticle style={{ animationDelay: '1s' }} />
+                  <OrbitParticle style={{ animationDelay: '2s' }} />
+                </>
+              )}
+
               <ElementNumber $theme={theme}>{element.number}</ElementNumber>
               <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
               <ElementImage
@@ -638,6 +859,9 @@ const PeriodicTable: React.FC = () => {
               $theme={theme}
               $group={element.number - 89 + 3}
               $period={1}
+              $category={element.category}
+              $symbol={element.symbol}
+              $number={element.number}
               variants={elementVariants}
               initial="hidden"
               animate="visible"
@@ -646,6 +870,19 @@ const PeriodicTable: React.FC = () => {
               onHoverStart={() => setHoveredElement(element)}
               onHoverEnd={() => setHoveredElement(null)}
             >
+              {element.number <= 21 && renderElectronOrbits(element.symbol)}
+              {element.number <= 21 && ['H', 'N', 'O', 'F', 'Cl', 'He', 'Ne', 'Ar', 'Kr', 'Xe', 'Rn'].includes(element.symbol) && (
+                <VaporEffect />
+              )}
+              
+              {['metal', 'transition metal', 'post-transition metal'].includes(element.category) && (
+                <>
+                  <OrbitParticle style={{ animationDelay: '0s' }} />
+                  <OrbitParticle style={{ animationDelay: '1s' }} />
+                  <OrbitParticle style={{ animationDelay: '2s' }} />
+                </>
+              )}
+
               <ElementNumber $theme={theme}>{element.number}</ElementNumber>
               <ElementSymbol $theme={theme}>{element.symbol}</ElementSymbol>
               <ElementImage
