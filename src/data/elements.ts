@@ -7,6 +7,7 @@ export interface Element {
   period: number;
   group: number;
   block: string;
+  shells: number[];  // Array representing electrons in each shell
 }
 
 export const categories = [
@@ -49,7 +50,8 @@ export const elements: Element[] = [
     category: 'nonmetal',
     period: 1,
     group: 1,
-    block: 's'
+    block: 's',
+    shells: [1]
   },
   {
     number: 2,
@@ -59,7 +61,8 @@ export const elements: Element[] = [
     category: 'noble gas',
     period: 1,
     group: 18,
-    block: 's'
+    block: 's',
+    shells: [2]
   },
   // Period 2
   {
@@ -70,7 +73,8 @@ export const elements: Element[] = [
     category: 'alkali metal',
     period: 2,
     group: 1,
-    block: 's'
+    block: 's',
+    shells: [2, 1]
   },
   {
     number: 4,
@@ -80,7 +84,8 @@ export const elements: Element[] = [
     category: 'alkaline earth metal',
     period: 2,
     group: 2,
-    block: 's'
+    block: 's',
+    shells: [2, 2]
   },
   {
     number: 5,
@@ -90,7 +95,8 @@ export const elements: Element[] = [
     category: 'metalloid',
     period: 2,
     group: 13,
-    block: 'p'
+    block: 'p',
+    shells: [2, 3]
   },
   {
     number: 6,
@@ -100,7 +106,8 @@ export const elements: Element[] = [
     category: 'nonmetal',
     period: 2,
     group: 14,
-    block: 'p'
+    block: 'p',
+    shells: [2, 4]
   },
   {
     number: 7,
@@ -110,7 +117,8 @@ export const elements: Element[] = [
     category: 'nonmetal',
     period: 2,
     group: 15,
-    block: 'p'
+    block: 'p',
+    shells: [2, 5]
   },
   {
     number: 8,
@@ -120,17 +128,19 @@ export const elements: Element[] = [
     category: 'nonmetal',
     period: 2,
     group: 16,
-    block: 'p'
+    block: 'p',
+    shells: [2, 6]
   },
   {
     number: 9,
     symbol: 'F',
     name: 'Fluorine',
     atomic_mass: 18.998403163,
-    category: 'nonmetal',
+    category: 'halogen',
     period: 2,
     group: 17,
-    block: 'p'
+    block: 'p',
+    shells: [2, 7]
   },
   {
     number: 10,
@@ -140,7 +150,8 @@ export const elements: Element[] = [
     category: 'noble gas',
     period: 2,
     group: 18,
-    block: 'p'
+    block: 'p',
+    shells: [2, 8]
   },
   // Period 3
   {
