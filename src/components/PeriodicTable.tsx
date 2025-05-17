@@ -57,6 +57,14 @@ const fadeIn = keyframes`
   }
 `;
 
+const scaleIn = keyframes`
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
+  }
+`;
 
 const TableContainer = styled.div<StyledProps>`
   display: flex;
