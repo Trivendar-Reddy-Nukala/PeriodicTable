@@ -174,19 +174,30 @@ const FilterButton = styled(motion.button)<{ $active: boolean; $theme: Theme }>`
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 20px;
-  background: ${props => props.$active ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)'};
+  background: ${props => props.$active 
+    ? props.$theme === darkTheme 
+      ? 'rgba(255, 255, 255, 0.2)' 
+      : 'rgba(0, 0, 0, 0.1)'
+    : props.$theme === darkTheme 
+      ? 'rgba(255, 255, 255, 0.1)' 
+      : 'rgba(0, 0, 0, 0.05)'
+  };
   color: ${props => props.$theme.text};
   cursor: pointer;
   font-size: 0.9rem;
   white-space: nowrap;
-`;
+  transition: all 0.3s ease;
 
-const Title = styled.h1`
-  color: white;
-  text-align: center;
-  margin-bottom: 2rem;
-  font-size: 2.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  &:hover {
+    background: ${props => props.$active 
+      ? props.$theme === darkTheme 
+        ? 'rgba(255, 255, 255, 0.3)' 
+        : 'rgba(0, 0, 0, 0.15)'
+      : props.$theme === darkTheme 
+        ? 'rgba(255, 255, 255, 0.2)' 
+        : 'rgba(0, 0, 0, 0.1)'
+    };
+  }
 `;
 
 const ElementSymbol = styled(motion.div)<{ $theme: Theme }>`
@@ -310,32 +321,82 @@ const ScrollHint = styled(motion.div)`
 
 const Tooltip = styled(motion.div)<{ $theme: Theme }>`
   position: absolute;
-  top: -80px;
+  top: -120px;
   left: 50%;
   transform: translateX(-50%);
   background: ${props => props.$theme.cardBackground};
   padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   z-index: 10;
-  width: 200px;
+  width: 220px;
   pointer-events: none;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform-origin: bottom center;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid ${props => props.$theme.cardBackground};
+  }
 `;
 
-const ThemeToggle = styled(motion.button)`
+const TooltipContent = styled.div<{ $theme: Theme }>`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const TooltipRow = styled.div<{ $theme: Theme }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: ${props => props.$theme.background};
+  border-radius: 6px;
+  font-size: 0.9rem;
+
+  span:first-child {
+    color: ${props => props.$theme.text};
+    opacity: 0.8;
+  }
+
+  span:last-child {
+    color: ${props => props.$theme.text};
+    font-weight: 600;
+  }
+`;
+
+const ThemeToggle = styled(motion.button)<{ $theme: Theme }>`
   position: fixed;
   top: 1rem;
   right: 1rem;
-  background: rgba(255, 255, 255, 0.1);
+  background: ${props => props.$theme === darkTheme 
+    ? 'rgba(255, 255, 255, 0.1)' 
+    : 'rgba(0, 0, 0, 0.05)'};
   border: none;
-  color: white;
+  color: ${props => props.$theme.text};
   padding: 0.5rem 1rem;
   border-radius: 20px;
   cursor: pointer;
   backdrop-filter: blur(10px);
   z-index: 1000;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: ${props => props.$theme === darkTheme 
+      ? 'rgba(255, 255, 255, 0.2)' 
+      : 'rgba(0, 0, 0, 0.1)'};
+  }
 `;
 
 const PeriodicTable: React.FC = () => {
@@ -395,8 +456,23 @@ const PeriodicTable: React.FC = () => {
   };
 
   const tooltipVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
+    hidden: { 
+      opacity: 0, 
+      y: 10,
+      scale: 0.95,
+      transition: {
+        duration: 0.2
+      }
+    },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    }
   };
 
   return (
@@ -405,11 +481,10 @@ const PeriodicTable: React.FC = () => {
         onClick={() => setIsDarkMode(!isDarkMode)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        $theme={theme}
       >
         {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
       </ThemeToggle>
-
-      <Title style={{ color: theme.text }}>Periodic Table</Title>
 
       <FilterContainer>
         {categories.map(category => (
@@ -464,18 +539,24 @@ const PeriodicTable: React.FC = () => {
                     animate="visible"
                     exit="hidden"
                   >
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Number:</span>
-                      <span>{element.number}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Mass:</span>
-                      <span>{element.atomic_mass}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Category:</span>
-                      <span>{element.category}</span>
-                    </DetailText>
+                    <TooltipContent $theme={theme}>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Number</span>
+                        <span>{element.number}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Mass</span>
+                        <span>{element.atomic_mass}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Category</span>
+                        <span>{element.category}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Block</span>
+                        <span>{element.block}</span>
+                      </TooltipRow>
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </AnimatePresence>
@@ -522,18 +603,24 @@ const PeriodicTable: React.FC = () => {
                     animate="visible"
                     exit="hidden"
                   >
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Number:</span>
-                      <span>{element.number}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Mass:</span>
-                      <span>{element.atomic_mass}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Category:</span>
-                      <span>{element.category}</span>
-                    </DetailText>
+                    <TooltipContent $theme={theme}>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Number</span>
+                        <span>{element.number}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Mass</span>
+                        <span>{element.atomic_mass}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Category</span>
+                        <span>{element.category}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Block</span>
+                        <span>{element.block}</span>
+                      </TooltipRow>
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </AnimatePresence>
@@ -580,18 +667,24 @@ const PeriodicTable: React.FC = () => {
                     animate="visible"
                     exit="hidden"
                   >
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Number:</span>
-                      <span>{element.number}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Atomic Mass:</span>
-                      <span>{element.atomic_mass}</span>
-                    </DetailText>
-                    <DetailText style={{ color: theme.text }}>
-                      <span>Category:</span>
-                      <span>{element.category}</span>
-                    </DetailText>
+                    <TooltipContent $theme={theme}>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Number</span>
+                        <span>{element.number}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Atomic Mass</span>
+                        <span>{element.atomic_mass}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Category</span>
+                        <span>{element.category}</span>
+                      </TooltipRow>
+                      <TooltipRow $theme={theme}>
+                        <span>Block</span>
+                        <span>{element.block}</span>
+                      </TooltipRow>
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </AnimatePresence>
